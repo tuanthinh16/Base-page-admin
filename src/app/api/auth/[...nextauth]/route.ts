@@ -2,7 +2,6 @@ import NextAuth from "next-auth/next";
 import type { NextAuthOptions } from 'next-auth'
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { ACCOUNT_GET } from "@/app/apiRequestUri/route";
 import axios from "axios";
 
 
@@ -29,16 +28,17 @@ const handler =  NextAuth({
       
       async authorize(credentials: any) {
         try {
-          const APIURL = ACCOUNT_GET + `username=${credentials.username}`;
+          const APIURL =  `/api/accounts?username=${credentials.username}`;
             const response = await axios.get(APIURL,{
                 headers:{
                     'Content-Type':'application/json'
+                    
                 }
             });
             
             if(response.status === 200){
                 const user = response.data;
-                console.log("__USER",user)
+                console.log("__USER FOUND",user)
                 if (user) {
                     if (user[0]['password'] == credentials.password) {
                       return user[0];
@@ -61,6 +61,7 @@ const handler =  NextAuth({
         session.username = token.username;
         session.role = token.role;
       }
+      session.jwt = token;
       return session;
     },
     async jwt({token,user}:any){

@@ -5,6 +5,10 @@ import { useSnackbar } from 'notistack';
 import axios from 'axios';
 import ACCOUNT from '../model/account';
 import { signIn, useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { ISODateString } from 'next-auth';
+import { JWT } from 'next-auth/jwt';
+
 
 function LoginPage() {
     const [username, setUsername] = useState('');
@@ -21,10 +25,8 @@ function LoginPage() {
         });
         if(response?.url){
             if(token){
-                console.log("___SESSION",token);
-                if(token?.role == "admin"){
-                    router.push("/admin");
-                }else router.push("/")
+                console.log("___TOKEN",token);
+                
             }
         }
         console.log("___RESPONSE",response);
@@ -60,6 +62,7 @@ function LoginPage() {
             >
               Đăng nhập
             </button>
+            <Link href={"/register"} className='text-blue-800 hover:text-red-600 px-2 py-3'>{"Chưa có tài khoản? Đăng kí ngay"}</Link>
           </div>
         </form>
       </div>

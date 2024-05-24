@@ -20,11 +20,28 @@ export async function insertData(collectionName, data) {
     const client = await clientPromise;
     const db = client.db(dbName);
     const collection = db.collection(collectionName);
-    const result = await collection.insertOne(data);
-    return result.ops[0];
+    
+    // Create the query to find data by username
+    const query = { username: data.username };
+    
+    // Check if data with the same username already exists
+    const existingData = await collection.findOne(query);
+
+    if (existingData) {
+      // If data exists, update it
+      const result = await collection.updateOne(query, { $set: data });
+      if (result.modifiedCount === 0) {
+        throw new Error(`Failed to update data in ${collectionName}`);
+      }
+      return { success: true, message: `Data updated in ${collectionName}` };
+    } else {
+      // If data does not exist, insert it
+      const result = await collection.insertOne(data);
+      return { success: true, message: `Data inserted into ${collectionName}` };
+    }
   } catch (error) {
-    console.error(`Error inserting data into ${collectionName}:`, error);
-    throw new Error(`Could not insert data into ${collectionName}`);
+    console.error(`Error inserting/updating data into ${collectionName}:`, error);
+    throw new Error(`Could not insert/update data into ${collectionName}`);
   }
 }
 
@@ -45,8 +62,11 @@ export async function deleteData(collectionName, query) {
   try {
     const client = await clientPromise;
     const db = client.db(dbName);
+    console.log("filter: ",query)
     const collection = db.collection(collectionName);
+    
     const result = await collection.deleteOne(query);
+    console.log("__result:",result)
     return result.deletedCount > 0;
   } catch (error) {
     console.error(`Error deleting data from ${collectionName}:`, error);
